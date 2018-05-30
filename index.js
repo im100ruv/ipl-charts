@@ -1,47 +1,5 @@
-// $(function () {
-//   let myChart = Highcharts.chart('container', {
-//     chart: {
-//       type: 'bar'
-//     },
-//     title: {
-//       text: 'Fruit Consumption'
-//     },
-//     xAxis: {
-//       categories: ['Apples', 'Bananas', 'Oranges']
-//     },
-//     yAxis: {
-//       title: {
-//         text: 'Fruit eaten'
-//       }
-//     },
-//     series: [{
-//       name: 'Jane',
-//       data: [1, 0, 4]
-//     }, {
-//       name: 'John',
-//       data: [5, 7, 3]
-//     }]
-//   });
-// });
-
-$(document).ready(function() {
-  let chart = new Highcharts.Chart(options);
-});
-
-// var chart1; // globally available
-// $(function () {
-//   chart1 = Highcharts.stockChart('container', {
-//     rangeSelector: {
-//       selected: 1
-//     },
-//     series: [{
-//       name: 'USD to EUR',
-//       data: usdtoeur // predefined JavaScript array
-//     }]
-//   });
-// });
-
-
+let matchesJson;
+getYourFile("matches.csv");
 
 function toJson(csvData) {
   let lines = csvData.split("\n");
@@ -50,7 +8,7 @@ function toJson(csvData) {
     return h.trim();
   });
   let records = [];
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = 1; i < lines.length - 1; i++) {
     let record = {};
     let bits = lines[i].split(",");
     for (let j = 0; j < bits.length; j++) {
@@ -62,7 +20,6 @@ function toJson(csvData) {
   // return JSON.stringify(result); //JSON
 }
 
-
 function getYourFile(yourFile) {
   let rawFile = new XMLHttpRequest();
   rawFile.open("GET", yourFile, true);
@@ -70,24 +27,50 @@ function getYourFile(yourFile) {
     if (rawFile.readyState === 4) {
       if (rawFile.status === 200 || rawFile.status == 0) {
         let allText = rawFile.responseText;
-        let result = toJson(allText);
-        console.log(JSON.stringify(result));
-        return JSON.stringify(result);
+        matchesJson = toJson(allText);
       }
     }
   }
   rawFile.send(null);
 };
 
-const matchesJson = getYourFile("matches.csv");
 
-let options = {
-  chart: {
-      renderTo: 'container',
-      type: 'bar'
-  },
-  series: [{
-      name: 'Jane',
-      data: [1, 2, 4]
-  }]
-};
+$('#show-chart').click(function () {
+  // console.log(JSON.stringify(matchesJson));
+  let matchPerSeason = {};
+  for (let i = 0; i < matchesJson.length; i++) {
+    let year = matchesJson[i].season;
+    if (year in matchPerSeason) {
+      matchPerSeason[year] = matchPerSeason[year] + 1;
+    } else {
+      matchPerSeason[year] = 1;
+    }
+  }
+  // console.log(matchPerSeason);
+  let dataFeed = [];
+  let dataNames = [];
+  for (const key of Object.keys(matchPerSeason)) {
+    dataFeed.push({"name": key, "y": matchPerSeason[key]})
+  }
+  console.log(dataFeed)
+
+  // Create the chart
+  Highcharts.chart('container', {
+    chart: { type: 'column' },
+    title: { text: 'IPL Analysis' },
+    subtitle: { text: 'Matches per Season' },
+    yAxis: {
+      title: {
+        text: 'Matches'
+      }
+    },
+    xAxis: { categories: Object.keys(matchPerSeason) },
+    "series": [
+      {
+        "data": dataFeed
+      }
+    ]
+  });
+})
+
+
