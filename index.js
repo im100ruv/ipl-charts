@@ -59,22 +59,22 @@ $('#show-mat-per-seas').click(function () {
     chart: { type: 'column' },
     title: { text: 'IPL Analysis' },
     subtitle: { text: 'Matches per Season' },
-    yAxis: {
-      title: {
-        text: 'Matches'
-      }
+    yAxis: { title: { text: 'Matches' } },
+    xAxis: {
+       categories: Object.keys(matchPerSeason),
+       title: { text: "Year"}
     },
-    xAxis: { categories: Object.keys(matchPerSeason) },
     "series": [
       {
-        "data": dataFeed
+        "data": dataFeed,
+        colorByPoint: true,
+        showInLegend: false
       }
     ]
   });
 })
 
 $('#show-won-stack').click(function () {
-  // console.log(JSON.stringify(matchesJson));
   let matchesWonPerSeason = {};
   for (let i = 0; i < matchesJson.length; i++) {
     let winner = matchesJson[i].winner;
@@ -96,7 +96,6 @@ $('#show-won-stack').click(function () {
       matchesWonPerSeason[year][winner] = 1;
     }
   }
-  console.log(matchesWonPerSeason);
   let dataFeed = [];
   let years = Object.keys(matchesWonPerSeason);
   let dataTeamNames = [];
@@ -107,7 +106,6 @@ $('#show-won-stack').click(function () {
       }
     }
   }
-
   for (let i = 0; i < years.length; i++) {
     dataFeed.push({ "name": years[i], "data": [] });
     for (let j = 0; j < dataTeamNames.length; j++) {
@@ -119,7 +117,6 @@ $('#show-won-stack').click(function () {
       }
     }
   }
-
   Highcharts.chart('container', {
     chart: { type: 'column' },
     title: { text: 'IPL Analysis' },
@@ -159,7 +156,7 @@ $('#show-won-stack').click(function () {
       column: {
         stacking: 'normal',
         dataLabels: {
-          enabled: true,
+          enabled: false,
           color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
         }
       }
