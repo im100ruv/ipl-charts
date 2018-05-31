@@ -72,8 +72,17 @@ $('#show-mat-per-seas').click(function () {
     subtitle: { text: 'Matches per Season' },
     yAxis: { title: { text: 'Matches' } },
     xAxis: {
-       categories: Object.keys(matchPerSeason),
-       title: { text: "Year"}
+      categories: Object.keys(matchPerSeason),
+      title: { text: "Year" }
+    },
+    plotOptions: {
+      series: {
+        borderWidth: 0,
+        dataLabels: {
+          enabled: true,
+          format: '{point.y:%f}'
+        }
+      }
     },
     "series": [
       {
@@ -184,7 +193,7 @@ $('#show-extra-runs').click(function () {
   let yearDeliveriesData = [];
   let sum = 0;
   let matchPerSeason = {};
-  
+
   for (let i = 0; i < matchesJson.length; i++) {
     let year = matchesJson[i].season;
     if (year in matchPerSeason) {
@@ -196,7 +205,7 @@ $('#show-extra-runs').click(function () {
 
   for (const yr of Object.keys(matchPerSeason)) {
     if (yr <= 2016) {
-      sum += matchPerSeason[yr];  
+      sum += matchPerSeason[yr];
     }
   }
   //since last season(2017) is at the top, Add 2017 matches to sum
@@ -204,9 +213,9 @@ $('#show-extra-runs').click(function () {
   sum += matchPerSeason[2017];
   matchNoEnd16 = sum;
   matchNoStart16 = sum - matchPerSeason[2016] + 1;
-  
+
   for (const key of Object.keys(deliveriesJson)) {
-    if((deliveriesJson[key]["match_id"] >= matchNoStart16) && (deliveriesJson[key]["match_id"] <= matchNoEnd16)){
+    if ((deliveriesJson[key]["match_id"] >= matchNoStart16) && (deliveriesJson[key]["match_id"] <= matchNoEnd16)) {
       yearDeliveriesData.push(deliveriesJson[key]);
     }
   }
@@ -230,15 +239,117 @@ $('#show-extra-runs').click(function () {
   Highcharts.chart('container', {
     chart: { type: 'column' },
     title: { text: 'IPL Analysis' },
-    subtitle: { text: 'Extras per Team' },
+    subtitle: { text: 'Extras per Team (in 2016)' },
     yAxis: { title: { text: 'Runs' } },
     xAxis: {
-       categories: Object.keys(extraRunsPerTeam),
-       title: { text: "Team"}
+      categories: Object.keys(extraRunsPerTeam),
+      title: { text: "Team" }
+    },
+    plotOptions: {
+      series: {
+        borderWidth: 0,
+        dataLabels: {
+          enabled: true,
+          format: '{point.y:%f}'
+        }
+      }
     },
     "series": [
       {
         "data": dataFeed,
+        colorByPoint: true,
+        showInLegend: false
+      }
+    ]
+  });
+})
+
+$('#show-bowler-economy').click(function () {
+  let bowlersEconomy = {};
+  let matchNoStart15;
+  let matchNoEnd15;
+  let yearDeliveriesData = [];
+  let sum = 0;
+  let matchPerSeason = {};
+
+  for (let i = 0; i < matchesJson.length; i++) {
+    let year = matchesJson[i].season;
+    if (year in matchPerSeason) {
+      matchPerSeason[year] = matchPerSeason[year] + 1;
+    } else {
+      matchPerSeason[year] = 1;
+    }
+  }
+
+  for (const yr of Object.keys(matchPerSeason)) {
+    if (yr <= 2015) {
+      sum += matchPerSeason[yr];
+    }
+  }
+  //since last season(2017) is at the top, Add 2017 matches to sum
+  // replace 2017 with current season for other times
+  sum += matchPerSeason[2017];
+  matchNoEnd15 = sum;
+  matchNoStart15 = sum - matchPerSeason[2015] + 1;
+
+  for (const key of Object.keys(deliveriesJson)) {
+    if ((deliveriesJson[key]["match_id"] >= matchNoStart15) && (deliveriesJson[key]["match_id"] <= matchNoEnd15)) {
+      yearDeliveriesData.push(deliveriesJson[key]);
+    }
+  }
+  //feed into bowlersEconomy
+  for (const index in yearDeliveriesData) {
+    let bowler = yearDeliveriesData[index]["bowler"];
+    let runs = parseInt(yearDeliveriesData[index]["wide_runs"]) + parseInt(yearDeliveriesData[index]["noball_runs"]) + parseInt(yearDeliveriesData[index]["batsman_runs"]);
+    if (bowler in bowlersEconomy) {
+      bowlersEconomy[bowler]["runs"] += runs;
+      bowlersEconomy[bowler]["balls"] += 1;
+      bowlersEconomy[bowler]["economy"] = (bowlersEconomy[bowler]["runs"] / bowlersEconomy[bowler]["balls"]) * 6;
+    } else {
+      bowlersEconomy[bowler] = {};
+      bowlersEconomy[bowler]["runs"] = runs;
+      bowlersEconomy[bowler]["balls"] = 1;
+      bowlersEconomy[bowler]["economy"] = (bowlersEconomy[bowler]["runs"] / bowlersEconomy[bowler]["balls"]) * 6;
+    }
+  }
+
+  let dataFeed = [];
+  for (const key of Object.keys(bowlersEconomy)) {
+    if(bowlersEconomy[key]["balls"] >= 60){
+      dataFeed.push({ "name": key, "y": bowlersEconomy[key]["economy"] })
+    }
+  }
+
+  dataFeed.sort(function (a, b) {
+    return a.y - b.y
+  });
+  let sortedNames = [];
+  for (const i in dataFeed) {
+    sortedNames[i] = dataFeed[i].name;
+  }
+
+  // Create the chart
+  Highcharts.chart('container', {
+    chart: { type: 'column' },
+    title: { text: 'IPL Analysis' },
+    subtitle: { text: 'Economical Bowlers (Top 15 in 2015 : min 10 overs)' },
+    yAxis: { title: { text: 'Runs' } },
+    xAxis: {
+      categories: sortedNames,
+      title: { text: "Team" }
+    },
+    plotOptions: {
+      series: {
+        borderWidth: 0,
+        dataLabels: {
+          enabled: true,
+          format: '{point.y:.3f}'
+        }
+      }
+    },
+    "series": [
+      {
+        "data": dataFeed.slice(0,15),
         colorByPoint: true,
         showInLegend: false
       }
