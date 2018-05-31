@@ -52,7 +52,7 @@ function getDeliveries() {
 
 $('#show-mat-per-seas').click(function () {
   let matchPerSeason = {};
-  for (let i = 0; i < matchesJson.length; i++) {
+  for (const i in matchesJson) {
     let year = matchesJson[i].season;
     if (year in matchPerSeason) {
       matchPerSeason[year] = matchPerSeason[year] + 1;
@@ -96,7 +96,7 @@ $('#show-mat-per-seas').click(function () {
 
 $('#show-won-stack').click(function () {
   let matchesWonPerSeason = {};
-  for (let i = 0; i < matchesJson.length; i++) {
+  for (const i in matchesJson) {
     let winner = matchesJson[i].winner;
     if (winner == "Rising Pune Supergiants") {
       winner = "Rising Pune Supergiant"
@@ -126,9 +126,9 @@ $('#show-won-stack').click(function () {
       }
     }
   }
-  for (let i = 0; i < years.length; i++) {
+  for (const i in years) {
     dataFeed.push({ "name": years[i], "data": [] });
-    for (let j = 0; j < dataTeamNames.length; j++) {
+    for (const j in dataTeamNames) {
       let team = dataTeamNames[j];
       if (matchesWonPerSeason[years[i]][team]) {
         dataFeed[i]["data"].push(matchesWonPerSeason[years[i]][team]);
@@ -194,7 +194,7 @@ $('#show-extra-runs').click(function () {
   let sum = 0;
   let matchPerSeason = {};
 
-  for (let i = 0; i < matchesJson.length; i++) {
+  for (const i in matchesJson) {
     let year = matchesJson[i].season;
     if (year in matchPerSeason) {
       matchPerSeason[year] = matchPerSeason[year] + 1;
@@ -272,7 +272,7 @@ $('#show-bowler-economy').click(function () {
   let sum = 0;
   let matchPerSeason = {};
 
-  for (let i = 0; i < matchesJson.length; i++) {
+  for (const i in matchesJson) {
     let year = matchesJson[i].season;
     if (year in matchPerSeason) {
       matchPerSeason[year] = matchPerSeason[year] + 1;
@@ -315,7 +315,7 @@ $('#show-bowler-economy').click(function () {
 
   let dataFeed = [];
   for (const key of Object.keys(bowlersEconomy)) {
-    if(bowlersEconomy[key]["balls"] >= 60){
+    if (bowlersEconomy[key]["balls"] >= 60) {
       dataFeed.push({ "name": key, "y": bowlersEconomy[key]["economy"] })
     }
   }
@@ -349,7 +349,77 @@ $('#show-bowler-economy').click(function () {
     },
     "series": [
       {
-        "data": dataFeed.slice(0,15),
+        "data": dataFeed.slice(0, 15),
+        colorByPoint: true,
+        showInLegend: false
+      }
+    ]
+  });
+})
+
+$('#show-high-ind-score').click(function () {
+  let batsmenHighScore = {};
+  let matchData = {};
+
+  for (const key of deliveriesJson) {
+    let matchId = key.match_id;
+    let batsman = key.batsman;
+    let run = parseInt(key.batsman_runs);
+    if (matchId in matchData) {
+      if (batsman in matchData[matchId]) {
+        matchData[matchId][batsman] += run;
+      } else {
+        matchData[matchId][batsman] = run;
+      }
+    } else {
+      matchData[matchId] = {};
+      matchData[matchId][batsman] = run;
+    }
+  }
+
+  for (const key of Object.keys(matchData)) {
+    let teamBatsmen = Object.keys(matchData[key]);
+    for (const bat of teamBatsmen) {
+      if (bat in batsmenHighScore) {
+        if (batsmenHighScore[bat] < matchData[key][bat]) {
+          batsmenHighScore[bat] = matchData[key][bat];
+        }
+      } else {
+        batsmenHighScore[bat] = matchData[key][bat];
+      }
+    }
+  }
+
+  let sortedNames = Object.keys(batsmenHighScore).sort(function (a, b) {
+    return batsmenHighScore[b] - batsmenHighScore[a];
+  });
+  let sortedScore = [];
+  for (const i in sortedNames) {
+    sortedScore[i] = batsmenHighScore[sortedNames[i]];
+  }
+
+  // Create the chart
+  Highcharts.chart('container', {
+    chart: { type: 'column' },
+    title: { text: 'IPL Analysis' },
+    subtitle: { text: 'Highest Individual Score (Top 15)' },
+    yAxis: { title: { text: 'Runs' } },
+    xAxis: {
+      categories: sortedNames.slice(0,15),
+      title: { text: "Batsman" }
+    },
+    plotOptions: {
+      series: {
+        borderWidth: 0,
+        dataLabels: {
+          enabled: true,
+          format: '{point.y:%f}'
+        }
+      }
+    },
+    "series": [
+      {
+        "data": sortedScore.slice(0,15),
         colorByPoint: true,
         showInLegend: false
       }
