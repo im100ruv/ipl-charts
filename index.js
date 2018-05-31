@@ -1,5 +1,7 @@
 let matchesJson;
-getYourFile("matches.csv");
+let deliveriesJson;
+getMatches();
+getDeliveries();
 
 function toJson(csvData) {
   let lines = csvData.split("\n");
@@ -20,9 +22,9 @@ function toJson(csvData) {
   // return JSON.stringify(result); //JSON
 }
 
-function getYourFile(yourFile) {
+function getMatches() {
   let rawFile = new XMLHttpRequest();
-  rawFile.open("GET", yourFile, true);
+  rawFile.open("GET", 'matches.csv', true);
   rawFile.onreadystatechange = function () {
     if (rawFile.readyState === 4) {
       if (rawFile.status === 200 || rawFile.status == 0) {
@@ -34,9 +36,21 @@ function getYourFile(yourFile) {
   rawFile.send(null);
 };
 
+function getDeliveries() {
+  let rawFile = new XMLHttpRequest();
+  rawFile.open("GET", 'deliveries.csv', true);
+  rawFile.onreadystatechange = function () {
+    if (rawFile.readyState === 4) {
+      if (rawFile.status === 200 || rawFile.status == 0) {
+        let allText = rawFile.responseText;
+        deliveriesJson = toJson(allText);
+      }
+    }
+  }
+  rawFile.send(null);
+};
 
 $('#show-mat-per-seas').click(function () {
-  // console.log(JSON.stringify(matchesJson));
   let matchPerSeason = {};
   for (let i = 0; i < matchesJson.length; i++) {
     let year = matchesJson[i].season;
@@ -46,13 +60,10 @@ $('#show-mat-per-seas').click(function () {
       matchPerSeason[year] = 1;
     }
   }
-  // console.log(matchPerSeason);
   let dataFeed = [];
-  let dataNames = [];
   for (const key of Object.keys(matchPerSeason)) {
     dataFeed.push({ "name": key, "y": matchPerSeason[key] })
   }
-  console.log(dataFeed)
 
   // Create the chart
   Highcharts.chart('container', {
@@ -120,7 +131,7 @@ $('#show-won-stack').click(function () {
   Highcharts.chart('container', {
     chart: { type: 'column' },
     title: { text: 'IPL Analysis' },
-    subtitle: { text: 'Matches per Season' },
+    subtitle: { text: 'Matches won per year' },
     xAxis: {
       categories: dataTeamNames
     },
@@ -166,4 +177,71 @@ $('#show-won-stack').click(function () {
 
 })
 
+$('#show-extra-runs').click(function () {
+  let extraRunsPerTeam = {};
+  let matchNoStart16;
+  let matchNoEnd16;
+  let yearDeliveriesData = [];
+  let sum = 0;
+  let matchPerSeason = {};
+  
+  for (let i = 0; i < matchesJson.length; i++) {
+    let year = matchesJson[i].season;
+    if (year in matchPerSeason) {
+      matchPerSeason[year] = matchPerSeason[year] + 1;
+    } else {
+      matchPerSeason[year] = 1;
+    }
+  }
 
+  for (const yr of Object.keys(matchPerSeason)) {
+    if (yr <= 2016) {
+      sum += matchPerSeason[yr];  
+    }
+  }
+  //since last season(2017) is at the top, Add 2017 matches to sum
+  // replace 2017 with current season for other times
+  sum += matchPerSeason[2017];
+  matchNoEnd16 = sum;
+  matchNoStart16 = sum - matchPerSeason[2016] + 1;
+  
+  for (const key of Object.keys(deliveriesJson)) {
+    if((deliveriesJson[key]["match_id"] >= matchNoStart16) && (deliveriesJson[key]["match_id"] <= matchNoEnd16)){
+      yearDeliveriesData.push(deliveriesJson[key]);
+    }
+  }
+  //feed into extraRunsPerTeam
+  for (const index in yearDeliveriesData) {
+    let bowlingTeam = yearDeliveriesData[index]["bowling_team"];
+    let extraRuns = parseInt(yearDeliveriesData[index]["extra_runs"]);
+    if (bowlingTeam in extraRunsPerTeam) {
+      extraRunsPerTeam[bowlingTeam] = extraRunsPerTeam[bowlingTeam] + extraRuns;
+    } else {
+      extraRunsPerTeam[bowlingTeam] = extraRuns;
+    }
+  }
+
+  let dataFeed = [];
+  for (const key of Object.keys(extraRunsPerTeam)) {
+    dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
+  }
+
+  // Create the chart
+  Highcharts.chart('container', {
+    chart: { type: 'column' },
+    title: { text: 'IPL Analysis' },
+    subtitle: { text: 'Extras per Team' },
+    yAxis: { title: { text: 'Runs' } },
+    xAxis: {
+       categories: Object.keys(extraRunsPerTeam),
+       title: { text: "Team"}
+    },
+    "series": [
+      {
+        "data": dataFeed,
+        colorByPoint: true,
+        showInLegend: false
+      }
+    ]
+  });
+})
