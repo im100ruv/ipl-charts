@@ -24,7 +24,7 @@ function toJson(csvData) {
 
 function getMatches() {
   let rawFile = new XMLHttpRequest();
-  rawFile.open("GET", 'matches.csv', true);
+  rawFile.open("GET", './CSVs/matches.csv', true);
   rawFile.onreadystatechange = function () {
     if (rawFile.readyState === 4) {
       if (rawFile.status === 200 || rawFile.status == 0) {
@@ -38,7 +38,7 @@ function getMatches() {
 
 function getDeliveries() {
   let rawFile = new XMLHttpRequest();
-  rawFile.open("GET", 'deliveries.csv', true);
+  rawFile.open("GET", './CSVs/deliveries.csv', true);
   rawFile.onreadystatechange = function () {
     if (rawFile.readyState === 4) {
       if (rawFile.status === 200 || rawFile.status == 0) {
