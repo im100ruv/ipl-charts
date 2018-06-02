@@ -51,139 +51,92 @@ function getDeliveries() {
 };
 
 $('#show-mat-per-seas').click(function () {
-  let matchPerSeason = {};
-  for (const i in matchesJson) {
-    let year = matchesJson[i].season;
-    if (year in matchPerSeason) {
-      matchPerSeason[year] = matchPerSeason[year] + 1;
-    } else {
-      matchPerSeason[year] = 1;
-    }
-  }
-  let dataFeed = [];
-  for (const key of Object.keys(matchPerSeason)) {
-    dataFeed.push({ "name": key, "y": matchPerSeason[key] })
-  }
-
-  // Create the chart
-  Highcharts.chart('container', {
-    chart: { type: 'column' },
-    title: { text: 'IPL Analysis' },
-    subtitle: { text: 'Matches per Season' },
-    yAxis: { title: { text: 'Matches' } },
-    xAxis: {
-      categories: Object.keys(matchPerSeason),
-      title: { text: "Year" }
-    },
-    plotOptions: {
-      series: {
-        borderWidth: 0,
-        dataLabels: {
-          enabled: true,
-          format: '{point.y:%f}'
+  $.get("/match/mat-per-season", function (result) {
+    let years = result.map(function (obj) {
+      return obj.name;
+    });
+    // Create the chart
+    Highcharts.chart('container', {
+      chart: { type: 'column' },
+      title: { text: 'IPL Analysis' },
+      subtitle: { text: 'Matches per Season' },
+      yAxis: { title: { text: 'Matches' } },
+      xAxis: {
+        categories: years,
+        title: { text: "Year" }
+      },
+      plotOptions: {
+        series: {
+          borderWidth: 0,
+          dataLabels: {
+            enabled: true,
+            format: '{point.y:%f}'
+          }
         }
-      }
-    },
-    "series": [
-      {
-        "data": dataFeed,
-        colorByPoint: true,
-        showInLegend: false
-      }
-    ]
+      },
+      "series": [
+        {
+          "data": result,
+          colorByPoint: true,
+          showInLegend: false
+        }
+      ]
+    });
   });
 })
 
 $('#show-won-stack').click(function () {
-  let matchesWonPerSeason = {};
-  for (const i in matchesJson) {
-    let winner = matchesJson[i].winner;
-    if (winner == "Rising Pune Supergiants") {
-      winner = "Rising Pune Supergiant"
-    }
-    if (winner == "") {
-      winner = "No Result"
-    }
-    let year = matchesJson[i].season;
-    if (year in matchesWonPerSeason) {
-      if (matchesWonPerSeason[year][winner]) {
-        matchesWonPerSeason[year][winner] = matchesWonPerSeason[year][winner] + 1;
-      } else {
-        matchesWonPerSeason[year][winner] = 1;
-      }
-    } else {
-      matchesWonPerSeason[year] = {};
-      matchesWonPerSeason[year][winner] = 1;
-    }
-  }
-  let dataFeed = [];
-  let years = Object.keys(matchesWonPerSeason);
-  let dataTeamNames = [];
-  for (const key of years) {
-    for (const subkey of Object.keys(matchesWonPerSeason[key])) {
-      if (!dataTeamNames.includes(subkey)) {
-        dataTeamNames.push(subkey);
-      }
-    }
-  }
-  for (const i in years) {
-    dataFeed.push({ "name": years[i], "data": [] });
-    for (const j in dataTeamNames) {
-      let team = dataTeamNames[j];
-      if (matchesWonPerSeason[years[i]][team]) {
-        dataFeed[i]["data"].push(matchesWonPerSeason[years[i]][team]);
-      } else {
-        dataFeed[i]["data"].push(0);
-      }
-    }
-  }
-  Highcharts.chart('container', {
-    chart: { type: 'column' },
-    title: { text: 'IPL Analysis' },
-    subtitle: { text: 'Matches won per year' },
-    xAxis: {
-      categories: dataTeamNames
-    },
-    yAxis: {
-      min: 0,
-      title: {
-        text: 'Matches Won'
+  $.get("/match/won-stack", function (result) {
+    console.log(result.teamNames)
+    console.log(result.dataFeed)
+    // create the chart
+    Highcharts.chart('container', {
+      chart: { type: 'column' },
+      title: { text: 'IPL Analysis' },
+      subtitle: { text: 'Matches won per year' },
+      xAxis: {
+        categories: result.teamNames
       },
-      stackLabels: {
-        enabled: true,
-        style: {
-          fontWeight: 'bold',
-          color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+      yAxis: {
+        min: 0,
+        title: {
+          text: 'Matches Won'
+        },
+        stackLabels: {
+          enabled: true,
+          style: {
+            fontWeight: 'bold',
+            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+          }
         }
-      }
-    },
-    legend: {
-      align: 'right',
-      x: -30,
-      verticalAlign: 'top',
-      y: 25,
-      floating: true,
-      backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
-      borderColor: '#CCC',
-      borderWidth: 1,
-      shadow: false
-    },
-    tooltip: {
-      headerFormat: '<b>{point.x}</b><br/>',
-      pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}'
-    },
-    plotOptions: {
-      column: {
-        stacking: 'normal',
-        dataLabels: {
-          enabled: false,
-          color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
+      },
+      legend: {
+        align: 'right',
+        x: -30,
+        verticalAlign: 'top',
+        y: 25,
+        floating: true,
+        backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+        borderColor: '#CCC',
+        borderWidth: 1,
+        shadow: false
+      },
+      tooltip: {
+        headerFormat: '<b>{point.x}</b><br/>',
+        pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}'
+      },
+      plotOptions: {
+        column: {
+          stacking: 'normal',
+          dataLabels: {
+            enabled: false,
+            color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
+          }
         }
-      }
-    },
-    series: dataFeed
+      },
+      series: result.dataFeed
+    });
   });
-
 })
 
 $('#show-extra-runs').click(function () {
@@ -234,7 +187,8 @@ $('#show-extra-runs').click(function () {
   for (const key of Object.keys(extraRunsPerTeam)) {
     dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
   }
-
+  
+  console.log(dataFeed)
   // Create the chart
   Highcharts.chart('container', {
     chart: { type: 'column' },
@@ -405,7 +359,7 @@ $('#show-high-ind-score').click(function () {
     subtitle: { text: 'Highest Individual Score (Top 15)' },
     yAxis: { title: { text: 'Runs' } },
     xAxis: {
-      categories: sortedNames.slice(0,15),
+      categories: sortedNames.slice(0, 15),
       title: { text: "Batsman" }
     },
     plotOptions: {
@@ -419,7 +373,7 @@ $('#show-high-ind-score').click(function () {
     },
     "series": [
       {
-        "data": sortedScore.slice(0,15),
+        "data": sortedScore.slice(0, 15),
         colorByPoint: true,
         showInLegend: false
       }
