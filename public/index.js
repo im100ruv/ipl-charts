@@ -87,8 +87,6 @@ $('#show-mat-per-seas').click(function () {
 
 $('#show-won-stack').click(function () {
   $.get("/match/won-stack", function (result) {
-    console.log(result.teamNames)
-    console.log(result.dataFeed)
     // create the chart
     Highcharts.chart('container', {
       chart: { type: 'column' },
@@ -187,7 +185,8 @@ $('#show-extra-runs').click(function () {
   for (const key of Object.keys(extraRunsPerTeam)) {
     dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
   }
-  
+
+  console.log(Object.keys(extraRunsPerTeam))
   console.log(dataFeed)
   // Create the chart
   Highcharts.chart('container', {
