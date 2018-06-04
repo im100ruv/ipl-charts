@@ -106,6 +106,40 @@ router.get('/:data', function (req, res) {
 
       res.status(200).json({ "dataFeed": dataFeed, "teamNames": dataTeamNames });
     });
+  } else if (req.params.data === "extra-runs") {
+    Match.aggregate([
+      {
+        $match: { season: 2016 }
+      }
+    ], function (err, matIds) {
+      matIds = matIds.map(obj => {
+        return obj.id;
+      });
+      Ball.aggregate([
+        {
+          $match: { match_id: { $gte: parseInt(matIds[0]), $lte: parseInt(matIds[matIds.length-1]) } }  //change last index
+        }, {
+          $project: { _id: 0, bowling: "$bowling_team", extra: "$extra_runs" }
+        }
+      ], function (err, result) {
+        let extraRunsPerTeam = {};
+        result.forEach(elem => {
+          let bowlingTeam = elem.bowling;
+          if (bowlingTeam in extraRunsPerTeam) {
+            extraRunsPerTeam[bowlingTeam] = extraRunsPerTeam[bowlingTeam] + elem.extra;
+          } else {
+            extraRunsPerTeam[bowlingTeam] = elem.extra;
+          }
+        });
+
+        let dataFeed = [];
+        for (const key of Object.keys(extraRunsPerTeam)) {
+          dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
+        }
+
+        res.status(200).json({ "dataFeed": dataFeed, "teams": Object.keys(extraRunsPerTeam)});
+      });
+    });
   }
 });
 

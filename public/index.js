@@ -138,83 +138,35 @@ $('#show-won-stack').click(function () {
 })
 
 $('#show-extra-runs').click(function () {
-  let extraRunsPerTeam = {};
-  let matchNoStart16;
-  let matchNoEnd16;
-  let yearDeliveriesData = [];
-  let sum = 0;
-  let matchPerSeason = {};
-
-  for (const i in matchesJson) {
-    let year = matchesJson[i].season;
-    if (year in matchPerSeason) {
-      matchPerSeason[year] = matchPerSeason[year] + 1;
-    } else {
-      matchPerSeason[year] = 1;
-    }
-  }
-
-  for (const yr of Object.keys(matchPerSeason)) {
-    if (yr <= 2016) {
-      sum += matchPerSeason[yr];
-    }
-  }
-  //since last season(2017) is at the top, Add 2017 matches to sum
-  // replace 2017 with current season for other times
-  sum += matchPerSeason[2017];
-  matchNoEnd16 = sum;
-  matchNoStart16 = sum - matchPerSeason[2016] + 1;
-
-  for (const key of Object.keys(deliveriesJson)) {
-    if ((deliveriesJson[key]["match_id"] >= matchNoStart16) && (deliveriesJson[key]["match_id"] <= matchNoEnd16)) {
-      yearDeliveriesData.push(deliveriesJson[key]);
-    }
-  }
-  //feed into extraRunsPerTeam
-  for (const index in yearDeliveriesData) {
-    let bowlingTeam = yearDeliveriesData[index]["bowling_team"];
-    let extraRuns = parseInt(yearDeliveriesData[index]["extra_runs"]);
-    if (bowlingTeam in extraRunsPerTeam) {
-      extraRunsPerTeam[bowlingTeam] = extraRunsPerTeam[bowlingTeam] + extraRuns;
-    } else {
-      extraRunsPerTeam[bowlingTeam] = extraRuns;
-    }
-  }
-
-  let dataFeed = [];
-  for (const key of Object.keys(extraRunsPerTeam)) {
-    dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
-  }
-
-  console.log(Object.keys(extraRunsPerTeam))
-  console.log(dataFeed)
-  // Create the chart
-  Highcharts.chart('container', {
-    chart: { type: 'column' },
-    title: { text: 'IPL Analysis' },
-    subtitle: { text: 'Extras per Team (in 2016)' },
-    yAxis: { title: { text: 'Runs' } },
-    xAxis: {
-      categories: Object.keys(extraRunsPerTeam),
-      title: { text: "Team" }
-    },
-    plotOptions: {
-      series: {
-        borderWidth: 0,
-        dataLabels: {
-          enabled: true,
-          format: '{point.y:%f}'
+  $.get("/match/extra-runs", function (result) {
+    // Create the chart
+    Highcharts.chart('container', {
+      chart: { type: 'column' },
+      title: { text: 'IPL Analysis' },
+      subtitle: { text: 'Extras per Team (in 2016)' },
+      yAxis: { title: { text: 'Runs' } },
+      xAxis: {
+        categories: result.teams,
+        title: { text: "Team" }
+      },
+      plotOptions: {
+        series: {
+          borderWidth: 0,
+          dataLabels: {
+            enabled: true,
+            format: '{point.y:%f}'
+          }
         }
-      }
-    },
-    "series": [
-      {
-        "data": dataFeed,
-        colorByPoint: true,
-        showInLegend: false
-      }
-    ]
-  });
+      },
+      "series": [
+        {
+          "data": result.dataFeed,
+          colorByPoint: true,
+          showInLegend: false
+        }
+      ]
+    });
+  })
 })
 
 $('#show-bowler-economy').click(function () {
