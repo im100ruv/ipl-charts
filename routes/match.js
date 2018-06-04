@@ -117,7 +117,7 @@ router.get('/:data', function (req, res) {
       });
       Ball.aggregate([
         {
-          $match: { match_id: { $gte: parseInt(matIds[0]), $lte: parseInt(matIds[matIds.length-1]) } }  //change last index
+          $match: { match_id: { $gte: parseInt(matIds[0]), $lte: parseInt(matIds[matIds.length-1]) } } 
         }, {
           $project: { _id: 0, bowling: "$bowling_team", extra: "$extra_runs" }
         }
