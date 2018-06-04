@@ -17,20 +17,12 @@ router.get('/:data', function (req, res) {
         {
           $match: { match_id: { $gte: parseInt(matIds[0]), $lte: parseInt(matIds[matIds.length - 1]) } }
         }, {
-          $project: {
-            _id: 0,
-            bowler: "$bowler",
-            wide: "$wide_runs",
-            noball: "$noball_runs",
-            batruns: "$batsman_runs"
-          }
-        }, {
           $group: {
             _id: "$bowler",
             balls: { $sum: 1 },
-            wide: { $sum: "$wide" },
-            noball: { $sum: "$noball" },
-            batruns: { $sum: "$batruns" },
+            wide: { $sum: "$wide_runs" },
+            noball: { $sum: "$noball_runs" },
+            batruns: { $sum: "$batsman_runs" },
             // economy: { $multiply: [ { $divide: [ { $add: [ "$wide", "$batruns" ] }, "$balls" ] }, 6 ] }
           }
         }
@@ -62,9 +54,43 @@ router.get('/:data', function (req, res) {
         for (const i in dataFeed) {
           sortedNames[i] = dataFeed[i].name;
         }
-        
+
         res.status(200).json({ "names": sortedNames, "dataFeed": dataFeed });
       });
+    });
+
+  } else if (req.params.data === "batsman-high") {
+    Ball.aggregate([
+      {
+        $group: {
+          _id: {
+            match: "$match_id",
+            batsman: "$batsman"
+          },
+          batruns: { $sum: "$batsman_runs" }
+        }
+      }, {
+        $project: {
+          _id: 0,
+          match: "$_id.match",
+          batsman: "$_id.batsman",
+          runs: "$batruns"
+        }
+      }, {
+        $group: {
+          _id: "$batsman",
+          high: { $max: "$runs" }
+        }
+      }, {
+        $sort: { "high": -1 }
+      }
+    ], function (err, result) {
+      let stdResult = {};
+      result.forEach(elem => {
+        stdResult[elem._id] = elem.high;
+      });
+
+      res.status(200).json({ "names": Object.keys(stdResult), "dataFeed": Object.values(stdResult) });
     });
   }
 });

@@ -202,71 +202,33 @@ $('#show-bowler-economy').click(function () {
 })
 
 $('#show-high-ind-score').click(function () {
-  let batsmenHighScore = {};
-  let matchData = {};
-
-  for (const key of deliveriesJson) {
-    let matchId = key.match_id;
-    let batsman = key.batsman;
-    let run = parseInt(key.batsman_runs);
-    if (matchId in matchData) {
-      if (batsman in matchData[matchId]) {
-        matchData[matchId][batsman] += run;
-      } else {
-        matchData[matchId][batsman] = run;
-      }
-    } else {
-      matchData[matchId] = {};
-      matchData[matchId][batsman] = run;
-    }
-  }
-
-  for (const key of Object.keys(matchData)) {
-    let teamBatsmen = Object.keys(matchData[key]);
-    for (const bat of teamBatsmen) {
-      if (bat in batsmenHighScore) {
-        if (batsmenHighScore[bat] < matchData[key][bat]) {
-          batsmenHighScore[bat] = matchData[key][bat];
+  $.get("/player/batsman-high", function (result) {
+    // Create the chart
+    Highcharts.chart('container', {
+      chart: { type: 'column' },
+      title: { text: 'IPL Analysis' },
+      subtitle: { text: 'Highest Individual Score (Top 15)' },
+      yAxis: { title: { text: 'Runs' } },
+      xAxis: {
+        categories: result.names.slice(0, 15),
+        title: { text: "Batsman" }
+      },
+      plotOptions: {
+        series: {
+          borderWidth: 0,
+          dataLabels: {
+            enabled: true,
+            format: '{point.y:%f}'
+          }
         }
-      } else {
-        batsmenHighScore[bat] = matchData[key][bat];
-      }
-    }
-  }
-
-  let sortedNames = Object.keys(batsmenHighScore).sort(function (a, b) {
-    return batsmenHighScore[b] - batsmenHighScore[a];
-  });
-  let sortedScore = [];
-  for (const i in sortedNames) {
-    sortedScore[i] = batsmenHighScore[sortedNames[i]];
-  }
-
-  // Create the chart
-  Highcharts.chart('container', {
-    chart: { type: 'column' },
-    title: { text: 'IPL Analysis' },
-    subtitle: { text: 'Highest Individual Score (Top 15)' },
-    yAxis: { title: { text: 'Runs' } },
-    xAxis: {
-      categories: sortedNames.slice(0, 15),
-      title: { text: "Batsman" }
-    },
-    plotOptions: {
-      series: {
-        borderWidth: 0,
-        dataLabels: {
-          enabled: true,
-          format: '{point.y:%f}'
+      },
+      "series": [
+        {
+          "data": result.dataFeed.slice(0, 15),
+          colorByPoint: true,
+          showInLegend: false
         }
-      }
-    },
-    "series": [
-      {
-        "data": sortedScore.slice(0, 15),
-        colorByPoint: true,
-        showInLegend: false
-      }
-    ]
-  });
+      ]
+    });
+  })
 })
