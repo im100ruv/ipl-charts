@@ -24,7 +24,7 @@ function toJson(csvData) {
 
 function getMatches() {
   let rawFile = new XMLHttpRequest();
-  rawFile.open("GET", 'matches.csv', true);
+  rawFile.open("GET", 'CSVs/matches.csv', true);
   rawFile.onreadystatechange = function () {
     if (rawFile.readyState === 4) {
       if (rawFile.status === 200 || rawFile.status == 0) {
@@ -38,7 +38,7 @@ function getMatches() {
 
 function getDeliveries() {
   let rawFile = new XMLHttpRequest();
-  rawFile.open("GET", 'deliveries.csv', true);
+  rawFile.open("GET", 'CSVs/deliveries.csv', true);
   rawFile.onreadystatechange = function () {
     if (rawFile.readyState === 4) {
       if (rawFile.status === 200 || rawFile.status == 0) {
@@ -52,16 +52,17 @@ function getDeliveries() {
 
 $('#show-mat-per-seas').click(function () {
   let matchPerSeason = {};
-  for (const i in matchesJson) {
-    let year = matchesJson[i].season;
+  matchesJson.forEach(elem => {
+    let year = elem.season;
     if (year in matchPerSeason) {
       matchPerSeason[year] = matchPerSeason[year] + 1;
     } else {
       matchPerSeason[year] = 1;
     }
-  }
+  });
+
   let dataFeed = [];
-  for (const key of Object.keys(matchPerSeason)) {
+  for (const key in matchPerSeason) {
     dataFeed.push({ "name": key, "y": matchPerSeason[key] })
   }
 
@@ -96,15 +97,15 @@ $('#show-mat-per-seas').click(function () {
 
 $('#show-won-stack').click(function () {
   let matchesWonPerSeason = {};
-  for (const i in matchesJson) {
-    let winner = matchesJson[i].winner;
+  matchesJson.forEach(elem => {
+    let winner = elem.winner;
     if (winner == "Rising Pune Supergiants") {
       winner = "Rising Pune Supergiant"
     }
     if (winner == "") {
       winner = "No Result"
     }
-    let year = matchesJson[i].season;
+    let year = elem.season;
     if (year in matchesWonPerSeason) {
       if (matchesWonPerSeason[year][winner]) {
         matchesWonPerSeason[year][winner] = matchesWonPerSeason[year][winner] + 1;
@@ -115,17 +116,18 @@ $('#show-won-stack').click(function () {
       matchesWonPerSeason[year] = {};
       matchesWonPerSeason[year][winner] = 1;
     }
-  }
+  });
   let dataFeed = [];
   let years = Object.keys(matchesWonPerSeason);
   let dataTeamNames = [];
-  for (const key of years) {
-    for (const subkey of Object.keys(matchesWonPerSeason[key])) {
+  years.forEach(key => {
+    for (const subkey in matchesWonPerSeason[key]) {
       if (!dataTeamNames.includes(subkey)) {
         dataTeamNames.push(subkey);
       }
     }
-  }
+  });
+
   for (const i in years) {
     dataFeed.push({ "name": years[i], "data": [] });
     for (const j in dataTeamNames) {
@@ -137,6 +139,7 @@ $('#show-won-stack').click(function () {
       }
     }
   }
+  // create chart
   Highcharts.chart('container', {
     chart: { type: 'column' },
     title: { text: 'IPL Analysis' },
@@ -194,16 +197,16 @@ $('#show-extra-runs').click(function () {
   let sum = 0;
   let matchPerSeason = {};
 
-  for (const i in matchesJson) {
-    let year = matchesJson[i].season;
+  matchesJson.forEach(elem => {
+    let year = elem.season;
     if (year in matchPerSeason) {
       matchPerSeason[year] = matchPerSeason[year] + 1;
     } else {
       matchPerSeason[year] = 1;
     }
-  }
+  });
 
-  for (const yr of Object.keys(matchPerSeason)) {
+  for (const yr in matchPerSeason) {
     if (yr <= 2016) {
       sum += matchPerSeason[yr];
     }
@@ -214,24 +217,24 @@ $('#show-extra-runs').click(function () {
   matchNoEnd16 = sum;
   matchNoStart16 = sum - matchPerSeason[2016] + 1;
 
-  for (const key of Object.keys(deliveriesJson)) {
+  for (const key in deliveriesJson) {
     if ((deliveriesJson[key]["match_id"] >= matchNoStart16) && (deliveriesJson[key]["match_id"] <= matchNoEnd16)) {
       yearDeliveriesData.push(deliveriesJson[key]);
     }
   }
   //feed into extraRunsPerTeam
-  for (const index in yearDeliveriesData) {
-    let bowlingTeam = yearDeliveriesData[index]["bowling_team"];
-    let extraRuns = parseInt(yearDeliveriesData[index]["extra_runs"]);
+  yearDeliveriesData.forEach(elem => {
+    let bowlingTeam = elem["bowling_team"];
+    let extraRuns = parseInt(elem["extra_runs"]);
     if (bowlingTeam in extraRunsPerTeam) {
       extraRunsPerTeam[bowlingTeam] = extraRunsPerTeam[bowlingTeam] + extraRuns;
     } else {
       extraRunsPerTeam[bowlingTeam] = extraRuns;
     }
-  }
+  });
 
   let dataFeed = [];
-  for (const key of Object.keys(extraRunsPerTeam)) {
+  for (const key in extraRunsPerTeam) {
     dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
   }
 
@@ -272,16 +275,16 @@ $('#show-bowler-economy').click(function () {
   let sum = 0;
   let matchPerSeason = {};
 
-  for (const i in matchesJson) {
-    let year = matchesJson[i].season;
+  matchesJson.forEach(elem => {
+    let year = elem.season;
     if (year in matchPerSeason) {
       matchPerSeason[year] = matchPerSeason[year] + 1;
     } else {
       matchPerSeason[year] = 1;
     }
-  }
+  });
 
-  for (const yr of Object.keys(matchPerSeason)) {
+  for (const yr in matchPerSeason) {
     if (yr <= 2015) {
       sum += matchPerSeason[yr];
     }
@@ -292,15 +295,15 @@ $('#show-bowler-economy').click(function () {
   matchNoEnd15 = sum;
   matchNoStart15 = sum - matchPerSeason[2015] + 1;
 
-  for (const key of Object.keys(deliveriesJson)) {
+  for (const key in deliveriesJson) {
     if ((deliveriesJson[key]["match_id"] >= matchNoStart15) && (deliveriesJson[key]["match_id"] <= matchNoEnd15)) {
       yearDeliveriesData.push(deliveriesJson[key]);
     }
   }
   //feed into bowlersEconomy
-  for (const index in yearDeliveriesData) {
-    let bowler = yearDeliveriesData[index]["bowler"];
-    let runs = parseInt(yearDeliveriesData[index]["wide_runs"]) + parseInt(yearDeliveriesData[index]["noball_runs"]) + parseInt(yearDeliveriesData[index]["batsman_runs"]);
+  yearDeliveriesData.forEach(elem => {
+    let bowler = elem["bowler"];
+    let runs = parseInt(elem["wide_runs"]) + parseInt(elem["noball_runs"]) + parseInt(elem["batsman_runs"]);
     if (bowler in bowlersEconomy) {
       bowlersEconomy[bowler]["runs"] += runs;
       bowlersEconomy[bowler]["balls"] += 1;
@@ -311,10 +314,10 @@ $('#show-bowler-economy').click(function () {
       bowlersEconomy[bowler]["balls"] = 1;
       bowlersEconomy[bowler]["economy"] = (bowlersEconomy[bowler]["runs"] / bowlersEconomy[bowler]["balls"]) * 6;
     }
-  }
+  });
 
   let dataFeed = [];
-  for (const key of Object.keys(bowlersEconomy)) {
+  for (const key in bowlersEconomy) {
     if (bowlersEconomy[key]["balls"] >= 60) {
       dataFeed.push({ "name": key, "y": bowlersEconomy[key]["economy"] })
     }
@@ -323,10 +326,9 @@ $('#show-bowler-economy').click(function () {
   dataFeed.sort(function (a, b) {
     return a.y - b.y
   });
-  let sortedNames = [];
-  for (const i in dataFeed) {
-    sortedNames[i] = dataFeed[i].name;
-  }
+  let sortedNames = dataFeed.map(obj => {
+    return obj.name;
+  });
 
   // Create the chart
   Highcharts.chart('container', {
@@ -361,7 +363,7 @@ $('#show-high-ind-score').click(function () {
   let batsmenHighScore = {};
   let matchData = {};
 
-  for (const key of deliveriesJson) {
+  deliveriesJson.forEach(key => {
     let matchId = key.match_id;
     let batsman = key.batsman;
     let run = parseInt(key.batsman_runs);
@@ -375,11 +377,11 @@ $('#show-high-ind-score').click(function () {
       matchData[matchId] = {};
       matchData[matchId][batsman] = run;
     }
-  }
+  });
 
-  for (const key of Object.keys(matchData)) {
+  for (const key in matchData) {
     let teamBatsmen = Object.keys(matchData[key]);
-    for (const bat of teamBatsmen) {
+    teamBatsmen.forEach(bat => {
       if (bat in batsmenHighScore) {
         if (batsmenHighScore[bat] < matchData[key][bat]) {
           batsmenHighScore[bat] = matchData[key][bat];
@@ -387,16 +389,15 @@ $('#show-high-ind-score').click(function () {
       } else {
         batsmenHighScore[bat] = matchData[key][bat];
       }
-    }
+    });
   }
 
   let sortedNames = Object.keys(batsmenHighScore).sort(function (a, b) {
     return batsmenHighScore[b] - batsmenHighScore[a];
   });
-  let sortedScore = [];
-  for (const i in sortedNames) {
-    sortedScore[i] = batsmenHighScore[sortedNames[i]];
-  }
+  let sortedScore = sortedNames.map(elem => {
+    return batsmenHighScore[elem];
+  });
 
   // Create the chart
   Highcharts.chart('container', {
@@ -405,7 +406,7 @@ $('#show-high-ind-score').click(function () {
     subtitle: { text: 'Highest Individual Score (Top 15)' },
     yAxis: { title: { text: 'Runs' } },
     xAxis: {
-      categories: sortedNames.slice(0,15),
+      categories: sortedNames.slice(0, 15),
       title: { text: "Batsman" }
     },
     plotOptions: {
@@ -419,7 +420,7 @@ $('#show-high-ind-score').click(function () {
     },
     "series": [
       {
-        "data": sortedScore.slice(0,15),
+        "data": sortedScore.slice(0, 15),
         colorByPoint: true,
         showInLegend: false
       }
