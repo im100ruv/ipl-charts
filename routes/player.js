@@ -15,43 +15,36 @@ router.get('/:data', function (req, res) {
       });
       Ball.aggregate([
         {
-          $match: { match_id: { $gte: parseInt(matIds[0]), $lte: parseInt(matIds[matIds.length - 1]) } }
+          $match: { match_id: { $gte: matIds[0], $lte: matIds[matIds.length - 1] + 1 } }
         }, {
           $group: {
             _id: "$bowler",
             balls: { $sum: 1 },
-            wide: { $sum: "$wide_runs" },
-            noball: { $sum: "$noball_runs" },
-            batruns: { $sum: "$batsman_runs" },
-            // economy: { $multiply: [ { $divide: [ { $add: [ "$wide", "$batruns" ] }, "$balls" ] }, 6 ] }
+            runs: { $sum: { $add: ["$wide_runs", "$noball_runs", "$batsman_runs"] } }
           }
+        }, {
+          $match: { balls: { $gte: 60 } }
+        }, {
+          $project: {
+            _id: 0,
+            bowler: "$_id",
+            balls: "$balls",
+            runs: "$runs",
+            economy: { $sum: { $multiply: [{ $divide: ["$runs", "$balls"] }, 6] } }
+          }
+        }, {
+          $sort: { economy: 1 }
+        }, {
+          $limit: 15
         }
       ], function (err, result) {
-        let bowlersEconomy = {};
-        result.forEach(elem => {
-          let bowler = elem._id;
-          let runs = parseInt(elem.wide) + parseInt(elem.noball) + parseInt(elem.batruns);
-          let balls = parseInt(elem.balls);
-
-          bowlersEconomy[bowler] = {};
-
-          bowlersEconomy[bowler]["runs"] = runs;
-          bowlersEconomy[bowler]["balls"] = balls;
-          bowlersEconomy[bowler]["economy"] = (runs / balls) * 6;
-        });
-
         let dataFeed = [];
-        for (const key in bowlersEconomy) {
-          if (bowlersEconomy[key]["balls"] >= 60) {
-            dataFeed.push({ "name": key, "y": bowlersEconomy[key]["economy"] })
-          }
-        }
-
-        dataFeed.sort(function (a, b) {
-          return a.y - b.y
+        result.forEach(elem => {
+          dataFeed.push({ "name": elem.bowler, "y": elem.economy });
         });
+
         let sortedNames = dataFeed.map(elem => {
-          return elem.name
+          return elem.name;
         });
 
         res.status(200).json({ "names": sortedNames, "dataFeed": dataFeed });

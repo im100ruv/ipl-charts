@@ -140,7 +140,7 @@ $('#show-bowler-economy').click(function () {
       },
       "series": [
         {
-          "data": result.dataFeed.slice(0, 15),
+          "data": result.dataFeed,
           colorByPoint: true,
           showInLegend: false
         }
