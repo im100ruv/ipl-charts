@@ -41,7 +41,7 @@ router.get('/:data', function (req, res) {
         });
 
         let dataFeed = [];
-        for (const key of Object.keys(bowlersEconomy)) {
+        for (const key in bowlersEconomy) {
           if (bowlersEconomy[key]["balls"] >= 60) {
             dataFeed.push({ "name": key, "y": bowlersEconomy[key]["economy"] })
           }
@@ -50,10 +50,9 @@ router.get('/:data', function (req, res) {
         dataFeed.sort(function (a, b) {
           return a.y - b.y
         });
-        let sortedNames = [];
-        for (const i in dataFeed) {
-          sortedNames[i] = dataFeed[i].name;
-        }
+        let sortedNames = dataFeed.map(elem => {
+          return elem.name
+        });
 
         res.status(200).json({ "names": sortedNames, "dataFeed": dataFeed });
       });

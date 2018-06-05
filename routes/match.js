@@ -23,11 +23,10 @@ router.get('/:data', function (req, res) {
       },
       {
         $sort: { _id: 1 }
+      },{
+        $project: { _id: 0, name: "$_id", y: "$count" }
       }
     ], function (err, result) {
-      result = result.map((obj) => {
-        return { "name": obj._id, "y": obj.count };
-      });
       res.status(200).json(result);
     });
 
@@ -133,7 +132,7 @@ router.get('/:data', function (req, res) {
         });
 
         let dataFeed = [];
-        for (const key of Object.keys(extraRunsPerTeam)) {
+        for (const key in extraRunsPerTeam) {
           dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
         }
 
