@@ -306,12 +306,14 @@ $('#show-bowler-economy').click(function () {
     let runs = parseInt(elem["wide_runs"]) + parseInt(elem["noball_runs"]) + parseInt(elem["batsman_runs"]);
     if (bowler in bowlersEconomy) {
       bowlersEconomy[bowler]["runs"] += runs;
-      bowlersEconomy[bowler]["balls"] += 1;
+      if(!Number(elem["wide_runs"]) && !Number(elem["noball_runs"])) {
+        bowlersEconomy[bowler]["balls"] += 1;
+      }
       bowlersEconomy[bowler]["economy"] = (bowlersEconomy[bowler]["runs"] / bowlersEconomy[bowler]["balls"]) * 6;
     } else {
       bowlersEconomy[bowler] = {};
       bowlersEconomy[bowler]["runs"] = runs;
-      bowlersEconomy[bowler]["balls"] = 1;
+      bowlersEconomy[bowler]["balls"] = (!Number(elem["wide_runs"]) && !Number(elem["noball_runs"])) ? 1: 0;
       bowlersEconomy[bowler]["economy"] = (bowlersEconomy[bowler]["runs"] / bowlersEconomy[bowler]["balls"]) * 6;
     }
   });
