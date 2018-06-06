@@ -1,7 +1,7 @@
 let matchesJson;
 let deliveriesJson;
-getMatches();
-getDeliveries();
+getCsvJson('CSVs/matches.csv', "matches");
+getCsvJson('CSVs/deliveries.csv', "deliveries");
 
 function toJson(csvData) {
   let lines = csvData.split("\n");
@@ -22,28 +22,19 @@ function toJson(csvData) {
   // return JSON.stringify(result); //JSON
 }
 
-function getMatches() {
+function getCsvJson(location, key) {
   let rawFile = new XMLHttpRequest();
-  rawFile.open("GET", 'CSVs/matches.csv', true);
+  rawFile.open("GET", location, true);
   rawFile.onreadystatechange = function () {
     if (rawFile.readyState === 4) {
       if (rawFile.status === 200 || rawFile.status == 0) {
         let allText = rawFile.responseText;
-        matchesJson = toJson(allText);
-      }
-    }
-  }
-  rawFile.send(null);
-};
-
-function getDeliveries() {
-  let rawFile = new XMLHttpRequest();
-  rawFile.open("GET", 'CSVs/deliveries.csv', true);
-  rawFile.onreadystatechange = function () {
-    if (rawFile.readyState === 4) {
-      if (rawFile.status === 200 || rawFile.status == 0) {
-        let allText = rawFile.responseText;
-        deliveriesJson = toJson(allText);
+        if(key == "matches") {
+          matchesJson = toJson(allText);
+        }
+        if(key == "deliveries") {
+          deliveriesJson = toJson(allText);
+        }
       }
     }
   }
