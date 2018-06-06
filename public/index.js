@@ -124,10 +124,10 @@ $('#show-bowler-economy').click(function () {
       chart: { type: 'column' },
       title: { text: 'IPL Analysis' },
       subtitle: { text: 'Economical Bowlers (Top 15 in 2015 : min 10 overs)' },
-      yAxis: { title: { text: 'Runs' } },
+      yAxis: { title: { text: 'Economy' } },
       xAxis: {
         categories: result.names,
-        title: { text: "Team" }
+        title: { text: "Bowlers" }
       },
       plotOptions: {
         series: {
