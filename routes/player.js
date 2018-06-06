@@ -19,7 +19,7 @@ router.get('/:data', function (req, res) {
         }, {
           $group: {
             _id: "$bowler",
-            balls: { $sum: { $cond: [ { $and: [ { $ne: [ "$wide_runs", "0" ] }, { $ne: [ "$noball_runs", "0" ] } ] }, 1, 0 ] } },
+            balls: { $sum: { $cond: [ { $and: [ { $eq: [ "$wide_runs", 0 ] }, { $eq: [ "$noball_runs", 0 ] } ] }, 1, 0 ] } },
             runs: { $sum: { $add: ["$wide_runs", "$noball_runs", "$batsman_runs"] } }
           }
         }, {
