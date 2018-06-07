@@ -102,7 +102,7 @@ router.get('/:data', function (req, res) {
           }
         }
       }
-
+      res.json(stdResult);
       res.status(200).json({ "dataFeed": dataFeed, "teamNames": dataTeamNames });
     });
   } else if (req.params.data === "extra-runs") {

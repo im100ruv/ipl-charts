@@ -38,9 +38,8 @@ router.get('/:data', function (req, res) {
           $limit: 15
         }
       ], function (err, result) {
-        let dataFeed = [];
-        result.forEach(elem => {
-          dataFeed.push({ "name": elem.bowler, "y": elem.economy });
+        let dataFeed = result.map(elem => {
+          return { "name": elem.bowler, "y": elem.economy };
         });
 
         let sortedNames = dataFeed.map(elem => {
