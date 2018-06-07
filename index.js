@@ -1,8 +1,6 @@
 $(document).ready(() => {
   let matchesJson;
   let deliveriesJson;
-  getCsvJson('CSVs/matches.csv', "matches");
-  getCsvJson('CSVs/deliveries.csv', "deliveries");
 
   function toJson(csvData) {
     let lines = csvData.split("\n");
@@ -23,24 +21,21 @@ $(document).ready(() => {
     // return JSON.stringify(result); //JSON
   }
 
-  function getCsvJson(location, key) {
-    let rawFile = new XMLHttpRequest();
-    rawFile.open("GET", location, true);
-    rawFile.onreadystatechange = function () {
-      if (rawFile.readyState === 4) {
-        if (rawFile.status === 200 || rawFile.status == 0) {
-          let allText = rawFile.responseText;
-          if (key == "matches") {
-            matchesJson = toJson(allText);
-          }
-          if (key == "deliveries") {
-            deliveriesJson = toJson(allText);
-          }
-        }
-      }
-    }
-    rawFile.send(null);
-  };
+  Promise.all([
+    "CSVs/matches.csv",
+    "CSVs/deliveries.csv"
+  ].map(function (url) {
+    return fetch(url).then(function (response) {
+      return response.ok ? response.text() : Promise.reject(response.status);
+    }).then(function (text) {
+      return toJson(text);
+    });
+  })).then(function (value) {
+    matchesJson = value[0],
+    deliveriesJson = value[1];
+    $('p').attr("hidden","");
+    $('div').removeAttr("hidden");
+  });
 
   $('#show-mat-per-seas').click(function () {
     let matchPerSeason = {};
