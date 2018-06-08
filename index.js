@@ -21,21 +21,41 @@ $(document).ready(() => {
     // return JSON.stringify(result); //JSON
   }
 
-  Promise.all([
-    "CSVs/matches.csv",
-    "CSVs/deliveries.csv"
-  ].map(function (url) {
-    return fetch(url).then(function (response) {
-      return response.ok ? response.text() : Promise.reject(response.status);
-    }).then(function (text) {
-      return toJson(text);
-    });
-  })).then(function (value) {
-    matchesJson = value[0],
-    deliveriesJson = value[1];
+  // ================================================
+  // //using promises one after the other
+  // Promise.all([
+  //   "CSVs/matches.csv",
+  //   "CSVs/deliveries.csv"
+  // ].map(function (url) {
+  //   return fetch(url)
+  //   .then(function (response) {
+  //     return response.ok ? response.text() : Promise.reject(response.status);
+  //   }).then(function (text) {
+  //     return toJson(text);
+  //   });
+  // })).then(function (value) {
+  //   matchesJson = value[0],
+  //   deliveriesJson = value[1];
+  //   $('p').attr("hidden","");
+  //   $('div').removeAttr("hidden");
+  // }).catch(err => console.error(err));
+  // =====================================================
+
+  // --------------------------------------------------------
+  //using async-await
+  prepareData().then(() => {
     $('p').attr("hidden","");
     $('div').removeAttr("hidden");
-  });
+  }).catch(err => console.error(err));
+
+  async function prepareData(){
+    let matResponse = await fetch("CSVs/matches.csv");
+    matchesJson = toJson(await matResponse.text());
+    let delResponse = await fetch("CSVs/deliveries.csv");
+    deliveriesJson = toJson(await delResponse.text());
+    return;
+  }
+  // -------------------------------------------------------
 
   $('#show-mat-per-seas').click(function () {
     let matchPerSeason = {};
