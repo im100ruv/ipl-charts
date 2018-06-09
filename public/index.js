@@ -1,4 +1,4 @@
-function createChart(xNames, dataFeed, xTitle, yTitle, subTitle) {
+function createChart(xNames, dataFeed, xTitle, yTitle, subTitle, pt='{point.y:%f}') {
   Highcharts.chart('container', {
     chart: { type: 'column' },
     title: { text: 'IPL Analysis' },
@@ -13,14 +13,14 @@ function createChart(xNames, dataFeed, xTitle, yTitle, subTitle) {
         borderWidth: 0,
         dataLabels: {
           enabled: true,
-          format: '{point.y:%f}'
+          format: pt
         }
       }
     },
     "series": [
       {
         "data": dataFeed,
-        name: "Matches",
+        name: yTitle,
         colorByPoint: true,
         showInLegend: false
       }
@@ -100,7 +100,7 @@ $(document).ready(() => {
 
   $('#show-bowler-economy').click(function () {
     $.get("/player/bowler-economy", function (result) {
-      createChart(result.names, result.dataFeed, "Bowlers", "Economy", "Economical Bowlers (Top 15 in 2015 : min 10 overs)");
+      createChart(result.names, result.dataFeed, "Bowlers", "Economy", "Economical Bowlers (Top 15 in 2015 : min 10 overs)", '{point.y:.2f}');
     })
   })
 

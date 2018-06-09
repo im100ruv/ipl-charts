@@ -82,10 +82,10 @@ function batsHighScore(res) {
     if (err) {
       res.status(500).send(err);
     }
-    let stdResult = {};
-    result.forEach(elem => {
-      stdResult[elem._id] = elem.high;
-    });
+    let stdResult = result.reduce((acc, elem) => {
+      acc[elem._id] = elem.high;
+      return acc;
+    }, {});
 
     res.status(200).json({ "names": Object.keys(stdResult), "dataFeed": Object.values(stdResult) });
   });

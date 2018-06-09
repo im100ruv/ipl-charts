@@ -75,30 +75,27 @@ function wonStack(res) {
 
     let dataTeamNames = Object.keys(stdResult)
 
-    let years = [];
-    for (const key in stdResult) {
-      Object.keys(stdResult[key]).forEach(elem => {
-        if (!years.includes(elem)) {
-          years.push(elem)
+    let years = Object.keys(stdResult).reduce((acc, team) => {
+      Object.keys(stdResult[team]).forEach(yr => {
+        if (!acc.includes(yr)) {
+          acc.push(yr)
         }
       });
-    }
-    years.sort((a, b) => {
-      return a - b;
-    })
+      return acc;
+    }, []);
 
-    let dataFeed = [];
-    for (const i in years) {
-      dataFeed.push({ "name": years[i], "data": [] });
-      for (const j in dataTeamNames) {
-        let team = dataTeamNames[j];
-        if (stdResult[team][years[i]]) {
-          dataFeed[i]["data"].push(stdResult[team][years[i]]);
+    let dataFeed = years.reduce((acc, yr, i) => {
+      acc.push({ "name": yr, "data": [] });
+      dataTeamNames.forEach(team => {
+        if (stdResult[team][yr]) {
+          acc[i]["data"].push(stdResult[team][yr]);
         } else {
-          dataFeed[i]["data"].push(0);
+          acc[i]["data"].push(0);
         }
-      }
-    }
+      });
+      return acc;
+    }, []);
+
     res.status(200).json({ "dataFeed": dataFeed, "teamNames": dataTeamNames });
   });
 }
@@ -122,20 +119,19 @@ function extraRuns(res) {
       if (err) {
         res.status(500).send(err);
       }
-      let extraRunsPerTeam = {};
-      result.forEach(elem => {
-        let bowlingTeam = elem.bowling;
-        if (bowlingTeam in extraRunsPerTeam) {
-          extraRunsPerTeam[bowlingTeam] = extraRunsPerTeam[bowlingTeam] + elem.extra;
+      let extraRunsPerTeam = result.reduce((acc, elem) => {
+        if (elem.bowling in acc) {
+          acc[elem.bowling] += elem.extra;
         } else {
-          extraRunsPerTeam[bowlingTeam] = elem.extra;
+          acc[elem.bowling] = elem.extra;
         }
-      });
+        return acc;
+      }, {});
 
-      let dataFeed = [];
-      for (const key in extraRunsPerTeam) {
-        dataFeed.push({ "name": key, "y": extraRunsPerTeam[key] })
-      }
+      let dataFeed = Object.keys(extraRunsPerTeam).reduce((acc, key)=>{
+        acc.push({ "name": key, "y": extraRunsPerTeam[key] })
+        return acc;
+      }, []);
 
       res.status(200).json({ "dataFeed": dataFeed, "teams": Object.keys(extraRunsPerTeam) });
     });
