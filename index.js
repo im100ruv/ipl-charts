@@ -20,7 +20,7 @@ function createChart(xNames, dataFeed, xTitle, yTitle, subTitle, pt='{point.y:%f
     "series": [
       {
         "data": dataFeed,
-        name: "Matches",
+        name: yTitle,
         colorByPoint: true,
         showInLegend: false
       }
